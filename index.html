@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ZenFlow — Estudio de Yoga</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --sage:          #A8C5A0;
+      --sage-light:    #C8DEC4;
+      --sage-pale:     #EAF4E8;
+      --mist:          #90B8C8;
+      --mist-light:    #B8D4DC;
+      --mist-pale:     #E8F4F8;
+      --blush:         #D4A8A0;
+      --blush-light:   #EAC8C4;
+      --blush-pale:    #FAF0EE;
+      --sand:          #D8C8A8;
+      --sand-pale:     #FAF4E8;
+      --text-dark:     #3A3530;
+      --text-mid:      #6B645C;
+      --text-soft:     #9B958E;
+      --white:         #FEFDFB;
+      --card-bg:       rgba(255,253,251,0.88);
+      --border-soft:   rgba(168,197,160,0.25);
+      --shadow-card:   0 2px 20px rgba(90,80,70,0.08);
+      --shadow-hover:  0 10px 36px rgba(90,80,70,0.13);
+      --r-lg: 20px; --r-md: 12px; --r-sm: 8px; --r-pill: 50px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      color: var(--text-dark);
+      background: var(--white);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 55% at 5%  15%, rgba(168,197,160,0.16) 0%, transparent 65%),
+        radial-gradient(ellipse 60% 50% at 95% 10%, rgba(144,184,200,0.18) 0%, transparent 65%),
+        radial-gradient(ellipse 70% 55% at 50% 95%, rgba(212,168,160,0.12) 0%, transparent 65%);
+    }
+
+    /* ─── NAV ──────────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 200;
+      height: 70px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 52px;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      background: rgba(254,253,251,0.86);
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .logo {
+      display: flex; align-items: center; gap: 10px; cursor: pointer;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.55rem; font-weight: 400; color: var(--text-dark);
+      letter-spacing: 0.02em;
+    }
+    #navGuest { display: flex; align-items: center; gap: 6px; }
+    #navAuth  { display: none; align-items: center; gap: 10px; }
+    .btn-nav {
+      padding: 8px 20px; border-radius: var(--r-pill); border: none;
+      font-family: 'DM Sans', sans-serif; font-size: 0.84rem; cursor: pointer;
+      transition: all 0.22s ease; letter-spacing: 0.02em;
+    }
+    .btn-nav.ghost   { background: transparent; color: var(--text-mid); }
+    .btn-nav.ghost:hover { background: var(--sage-pale); color: var(--text-dark); }
+    .btn-nav.primary { background: var(--sage); color: #fff; }
+    .btn-nav.primary:hover { background: #92B88A; box-shadow: 0 4px 14px rgba(168,197,160,.4); transform: translateY(-1px); }
+    .btn-nav.outline { background: transparent; color: var(--text-mid); border: 1.5px solid var(--border-soft); }
+    .btn-nav.outline:hover { border-color: var(--sage); color: var(--text-dark); }
+    .avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--sage-light), var(--mist-light));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 500; font-size: 0.82rem; color: var(--text-dark); flex-shrink: 0;
+    }
+    #navName { font-size: 0.84rem; color: var(--text-mid); }
+
+    /* ─── PAGES ─────────────────────────────────────────────── */
+    #app > .page { display: none; }
+    #app > .page.active { display: block; }
+
+    /* ─── HOME ──────────────────────────────────────────────── */
+    .hero {
+      min-height: calc(100vh - 70px);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 80px 24px;
+      position: relative; overflow: hidden;
+    }
+    .hero-deco {
+      position: absolute; border-radius: 50%; pointer-events: none;
+      animation: floatDeco 8s ease-in-out infinite;
+    }
+    .hero-deco-1 { width:520px;height:520px; background:radial-gradient(circle,rgba(168,197,160,.13) 0%,transparent 70%); top:-120px;right:-100px; }
+    .hero-deco-2 { width:420px;height:420px; background:radial-gradient(circle,rgba(144,184,200,.15) 0%,transparent 70%); bottom:-80px;left:-100px; animation-delay:-4s; }
+    @keyframes floatDeco { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-20px) scale(1.03)} }
+    .hero-content { max-width: 700px; position: relative; animation: fadeUp .9s ease both; }
+    .hero-tag {
+      display: inline-block; margin-bottom: 28px;
+      padding: 6px 18px; border-radius: var(--r-pill);
+      background: var(--sage-pale); border: 1px solid var(--sage-light);
+      font-size: 0.76rem; letter-spacing: .14em; text-transform: uppercase; color: var(--sage);
+    }
+    .hero h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.8rem, 7.5vw, 5.2rem);
+      font-weight: 300; line-height: 1.08;
+      color: var(--text-dark); margin-bottom: 26px;
+    }
+    .hero h1 em { font-style: italic; color: var(--sage); }
+    .hero p { font-size: 1.05rem; color: var(--text-mid); line-height: 1.75; margin-bottom: 48px; }
+    .cta-group { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .btn-cta {
+      padding: 14px 38px; border-radius: var(--r-pill); border: none;
+      font-family: 'DM Sans', sans-serif; font-size: 0.9rem; cursor: pointer;
+      letter-spacing: .03em; transition: all .3s ease;
+    }
+    .btn-cta.primary { background: linear-gradient(135deg, var(--sage), var(--mist)); color: #fff; box-shadow: 0 4px 22px rgba(168,197,160,.35); }
+    .btn-cta.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(168,197,160,.45); }
+    .btn-cta.outline { background: transparent; color: var(--text-mid); border: 1.5px solid rgba(168,197,160,.45); }
+    .btn-cta.outline:hover { background: var(--sage-pale); border-color: var(--sage); color: var(--text-dark); }
+
+    .features { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; padding: 0 52px 80px; max-width: 1100px; margin: 0 auto; }
+    .feat-card {
+      background: var(--card-bg); backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,.7); border-radius: var(--r-lg);
+      padding: 36px 28px; text-align: center; box-shadow: var(--shadow-card);
+      transition: transform .3s ease;
+    }
+    .feat-card:hover { transform: translateY(-4px); }
+    .feat-icon { width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto 20px; }
+    .feat-icon.g { background:var(--sage-pale); }
+    .feat-icon.b { background:var(--mist-pale); }
+    .feat-icon.p { background:var(--blush-pale); }
+    .feat-card h3 { font-family:'Cormorant Garamond',serif; font-size:1.25rem; font-weight:400; margin-bottom:10px; }
+    .feat-card p  { font-size:.875rem; color:var(--text-soft); line-height:1.65; }
+
+    /* ─── AUTH ──────────────────────────────────────────────── */
+    .auth-wrap { min-height: calc(100vh - 70px); display:flex; align-items:center; justify-content:center; padding:48px 20px; }
+    .auth-card {
+      background: var(--card-bg); backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,.8); border-radius: var(--r-lg);
+      padding: 48px 44px; width: 100%; max-width: 420px;
+      box-shadow: 0 8px 40px rgba(90,80,70,.1); animation: fadeUp .5s ease both;
+    }
+    .auth-card h2 { font-family:'Cormorant Garamond',serif; font-size:2rem; font-weight:300; margin-bottom:6px; }
+    .auth-card .sub { color:var(--text-soft); font-size:.875rem; margin-bottom:32px; }
+    .fgroup { margin-bottom: 18px; }
+    .fgroup label { display:block; font-size:.76rem; letter-spacing:.07em; text-transform:uppercase; color:var(--text-soft); margin-bottom:7px; }
+    .fgroup input, .fgroup select, .fgroup textarea {
+      width:100%; padding:12px 16px;
+      background:rgba(255,255,255,.6); border:1px solid rgba(168,197,160,.3);
+      border-radius:var(--r-sm); font-family:'DM Sans',sans-serif; font-size:.9rem;
+      color:var(--text-dark); outline:none; transition:border-color .2s ease;
+    }
+    .fgroup input:focus, .fgroup select:focus, .fgroup textarea:focus { border-color:var(--sage); background:white; }
+    .fgroup textarea { resize:vertical; min-height:80px; }
+    .frow { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .btn-submit {
+      width:100%; padding:14px; border-radius:var(--r-md); border:none;
+      background:linear-gradient(135deg,var(--sage),var(--mist));
+      color:#fff; font-family:'DM Sans',sans-serif; font-size:.9rem;
+      cursor:pointer; letter-spacing:.03em; transition:all .3s ease; margin-top:6px;
+    }
+    .btn-submit:hover { opacity:.9; transform:translateY(-1px); }
+    .btn-submit:disabled { opacity:.55; cursor:not-allowed; transform:none; }
+    .auth-switch { text-align:center; margin-top:22px; font-size:.84rem; color:var(--text-soft); }
+    .auth-switch a { color:var(--sage); cursor:pointer; font-weight:500; }
+    .auth-switch a:hover { text-decoration:underline; }
+
+    /* ─── SECTION ────────────────────────────────────────────── */
+    .section { padding:64px 52px; max-width:1100px; margin:0 auto; }
+    .section-hd { text-align:center; margin-bottom:48px; }
+    .section-hd h2 { font-family:'Cormorant Garamond',serif; font-size:clamp(1.8rem,4vw,2.8rem); font-weight:300; margin-bottom:10px; }
+    .section-hd p  { color:var(--text-soft); font-size:.9rem; }
+    .classes-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:20px; }
+
+    /* ─── CLASS CARD ─────────────────────────────────────────── */
+    .class-card {
+      background:var(--card-bg); backdrop-filter:blur(12px);
+      border:1px solid rgba(255,255,255,.75); border-radius:var(--r-lg);
+      overflow:hidden; box-shadow:var(--shadow-card);
+      transition:transform .3s ease, box-shadow .3s ease;
+    }
+    .class-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-hover); }
+    .cc-head { padding:20px 24px 14px; border-bottom:1px solid rgba(255,255,255,.5); }
+    .cc-top  { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; }
+    .type-badge { padding:4px 12px; border-radius:var(--r-pill); font-size:.7rem; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:#fff; }
+    .spots { font-size:.76rem; color:var(--text-soft); }
+    .spots.full { color:var(--blush); }
+    .class-card h3 { font-family:'Cormorant Garamond',serif; font-size:1.18rem; font-weight:400; margin-bottom:3px; }
+    .class-meta { font-size:.78rem; color:var(--text-soft); }
+    .cc-body { padding:16px 24px 20px; }
+    .cc-info { display:flex; flex-wrap:wrap; gap:14px; margin-bottom:16px; }
+    .cc-info-item { display:flex; align-items:center; gap:5px; font-size:.8rem; color:var(--text-mid); }
+    .btn-reserve {
+      width:100%; padding:11px; border-radius:var(--r-md); border:1px solid var(--sage-light);
+      background:linear-gradient(135deg,var(--sage-pale),var(--mist-pale));
+      color:var(--sage); font-family:'DM Sans',sans-serif; font-size:.875rem; font-weight:500;
+      cursor:pointer; letter-spacing:.02em; transition:all .25s ease;
+    }
+    .btn-reserve:hover:not(:disabled) { background:linear-gradient(135deg,var(--sage),var(--mist)); color:#fff; border-color:transparent; }
+    .btn-reserve:disabled { opacity:.5; cursor:not-allowed; }
+
+    /* ─── DASHBOARD ─────────────────────────────────────────── */
+    .dash-header {
+      background:linear-gradient(135deg,var(--sage-pale),var(--mist-pale) 55%,var(--blush-pale));
+      border-bottom:1px solid rgba(255,255,255,.6); padding:40px 52px;
+    }
+    .dash-header h1 { font-family:'Cormorant Garamond',serif; font-size:1.9rem; font-weight:300; margin-bottom:4px; }
+    .dash-header p  { color:var(--text-soft); font-size:.875rem; }
+    .dash-tabs {
+      display:flex; gap:4px; padding:14px 52px;
+      border-bottom:1px solid rgba(168,197,160,.18);
+      background:rgba(254,253,251,.85); backdrop-filter:blur(12px);
+      position:sticky; top:70px; z-index:100; overflow-x:auto;
+    }
+    .tab {
+      padding:8px 22px; border-radius:var(--r-pill); border:none;
+      background:transparent; font-family:'DM Sans',sans-serif; font-size:.82rem;
+      color:var(--text-soft); cursor:pointer; white-space:nowrap; transition:all .2s ease;
+    }
+    .tab:hover  { background:var(--sage-pale); color:var(--text-dark); }
+    .tab.active { background:var(--sage); color:#fff; }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+
+    /* ─── BOOKING LIST ──────────────────────────────────────── */
+    .blist { display:flex; flex-direction:column; gap:12px; }
+    .b-item {
+      background:var(--card-bg); border:1px solid rgba(255,255,255,.75);
+      border-radius:var(--r-md); padding:20px 24px;
+      display:flex; align-items:center; justify-content:space-between; gap:16px;
+      box-shadow:var(--shadow-card); transition:transform .2s ease;
+    }
+    .b-item:hover { transform:translateX(4px); }
+    .b-info h4 { font-family:'Cormorant Garamond',serif; font-size:1.08rem; font-weight:400; margin-bottom:4px; }
+    .b-info p  { font-size:.8rem; color:var(--text-soft); }
+    .b-right { display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
+    .status {
+      padding:5px 14px; border-radius:var(--r-pill); font-size:.73rem; font-weight:500;
+      letter-spacing:.04em; white-space:nowrap;
+    }
+    .status.pending   { background:var(--sand-pale);  color:#B08030; border:1px solid #E0C880; }
+    .status.approved  { background:var(--sage-pale);  color:#508050; border:1px solid var(--sage-light); }
+    .status.rejected  { background:var(--blush-pale); color:#B05050; border:1px solid var(--blush-light); }
+    .status.cancelled { background:#F2F2F0; color:#909090; border:1px solid #D8D8D8; }
+    .btn-cancel-link { font-size:.74rem; color:var(--text-soft); background:none; border:none; cursor:pointer; text-decoration:underline; }
+
+    /* ─── ADMIN ─────────────────────────────────────────────── */
+    .pending-card {
+      background:var(--card-bg); border:1px solid rgba(255,255,255,.75);
+      border-radius:var(--r-md); padding:24px; box-shadow:var(--shadow-card); margin-bottom:12px;
+    }
+    .pending-card h4 { font-family:'Cormorant Garamond',serif; font-size:1.12rem; font-weight:400; margin-bottom:6px; }
+    .pending-card h4 span { color:var(--sage); }
+    .pending-meta { font-size:.8rem; color:var(--text-soft); margin-bottom:16px; line-height:1.7; }
+    .pending-actions { display:flex; gap:10px; }
+    .btn-approve {
+      padding:9px 22px; border-radius:var(--r-sm);
+      border:1px solid var(--sage-light); background:var(--sage-pale); color:#508050;
+      font-family:'DM Sans',sans-serif; font-size:.82rem; font-weight:500;
+      cursor:pointer; transition:all .2s ease;
+    }
+    .btn-approve:hover { background:var(--sage); color:#fff; border-color:var(--sage); }
+    .btn-reject {
+      padding:9px 22px; border-radius:var(--r-sm);
+      border:1px solid var(--blush-light); background:var(--blush-pale); color:#B05050;
+      font-family:'DM Sans',sans-serif; font-size:.82rem; font-weight:500;
+      cursor:pointer; transition:all .2s ease;
+    }
+    .btn-reject:hover { background:var(--blush); color:#fff; border-color:var(--blush); }
+
+    .form-card {
+      background:var(--card-bg); border:1px solid rgba(255,255,255,.75);
+      border-radius:var(--r-lg); padding:36px; box-shadow:var(--shadow-card); max-width:680px;
+    }
+    .form-card h3 { font-family:'Cormorant Garamond',serif; font-size:1.5rem; font-weight:300; margin-bottom:28px; }
+
+    /* ─── MODAL ─────────────────────────────────────────────── */
+    .overlay {
+      display:none; position:fixed; inset:0; z-index:500;
+      background:rgba(58,53,48,.45); backdrop-filter:blur(8px);
+      align-items:center; justify-content:center; padding:24px;
+    }
+    .overlay.open { display:flex; }
+    .modal {
+      background:var(--white); border-radius:var(--r-lg); padding:40px;
+      max-width:460px; width:100%; box-shadow:0 24px 64px rgba(58,53,48,.22);
+      animation:fadeUp .28s ease;
+    }
+    .modal h3 { font-family:'Cormorant Garamond',serif; font-size:1.55rem; font-weight:300; margin-bottom:8px; }
+    .modal .modal-sub { color:var(--text-soft); font-size:.875rem; margin-bottom:24px; }
+    .modal-actions { display:flex; gap:12px; margin-top:24px; justify-content:flex-end; }
+    .btn-ghost { padding:11px 24px; border-radius:var(--r-md); border:1.5px solid var(--border-soft); background:transparent; color:var(--text-mid); font-family:'DM Sans',sans-serif; font-size:.875rem; cursor:pointer; transition:all .2s; }
+    .btn-ghost:hover { border-color:var(--sage); color:var(--text-dark); }
+
+    /* ─── LOADER / EMPTY ────────────────────────────────────── */
+    .loader { display:flex; align-items:center; justify-content:center; padding:60px; gap:8px; }
+    .dot { width:8px;height:8px;border-radius:50%;background:var(--sage);animation:pulse 1.4s ease-in-out infinite both; }
+    .dot:nth-child(2){animation-delay:.2s} .dot:nth-child(3){animation-delay:.4s}
+    @keyframes pulse { 0%,100%{opacity:.3;transform:scale(.8)} 50%{opacity:1;transform:scale(1.2)} }
+    .empty { text-align:center; padding:60px 24px; color:var(--text-soft); }
+    .empty .ei { font-size:2.8rem; margin-bottom:14px; opacity:.45; }
+    .empty p { font-size:.875rem; }
+
+    /* ─── TOAST ─────────────────────────────────────────────── */
+    #toast {
+      position:fixed; bottom:32px; left:50%;
+      transform:translateX(-50%) translateY(20px);
+      background:var(--text-dark); color:#fff; padding:12px 26px;
+      border-radius:var(--r-pill); font-size:.84rem; opacity:0;
+      transition:all .3s ease; z-index:9999; pointer-events:none;
+      white-space:nowrap; max-width:90vw; text-align:center;
+    }
+    #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+    #toast.ok  { background:#508050; }
+    #toast.err { background:#B05050; }
+
+    /* ─── FOOTER ────────────────────────────────────────────── */
+    footer { text-align:center; padding:32px 24px; font-size:.78rem; color:var(--text-soft); border-top:1px solid rgba(168,197,160,.18); margin-top:auto; }
+    footer .fl { font-family:'Cormorant Garamond',serif; font-size:1.1rem; color:var(--text-mid); margin-bottom:6px; }
+
+    /* ─── ANIMATIONS ────────────────────────────────────────── */
+    @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ─── RESPONSIVE ────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      nav { padding:0 20px; }
+      .logo span { display:none; }
+      .hero { padding:60px 20px; min-height:auto; }
+      .features { grid-template-columns:1fr; padding:0 20px 56px; }
+      .section { padding:40px 20px; }
+      .frow { grid-template-columns:1fr; }
+      .dash-header { padding:28px 20px; }
+      .dash-tabs { padding:10px 20px; top:60px; }
+      .b-item { flex-direction:column; align-items:flex-start; }
+      .form-card { padding:24px 18px; }
+      .auth-card { padding:32px 22px; }
+    }
+    @media (max-width: 480px) {
+      nav { height:60px; }
+      .classes-grid { grid-template-columns:1fr; }
+      .pending-actions { flex-direction:column; }
+      .btn-approve, .btn-reject { width:100%; text-align:center; }
+      .modal { padding:28px 20px; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- NAV -->
+  <nav>
+    <div class="logo" onclick="nav('home')">
+      <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+        <path d="M20 33C20 33 7 24 7 15C7 9 13 7 20 11C27 7 33 9 33 15C33 24 20 33 20 33Z" fill="#A8C5A0" opacity=".75"/>
+        <path d="M20 29C20 29 4 20 6 9C10 3 17 7 20 13C23 7 30 3 34 9C36 20 20 29 20 29Z" fill="#90B8C8" opacity=".55"/>
+        <path d="M20 33C14 27 10 20 12 13C14 9 18 11 20 15C22 11 26 9 28 13C30 20 26 27 20 33Z" fill="#B8AACC" opacity=".45"/>
+        <circle cx="20" cy="19" r="3" fill="#A8C5A0"/>
+      </svg>
+      <span>ZenFlow</span>
+    </div>
+    <div id="navGuest">
+      <button class="btn-nav ghost"   onclick="nav('classes')">Clases</button>
+      <button class="btn-nav outline" onclick="nav('login')">Iniciar sesión</button>
+      <button class="btn-nav primary" onclick="nav('register')">Unirse</button>
+    </div>
+    <div id="navAuth">
+      <div class="avatar" id="navAvatar">U</div>
+      <span id="navName"></span>
+      <button class="btn-nav ghost"   onclick="nav('dashboard')">Mi espacio</button>
+      <button class="btn-nav outline" onclick="doLogout()">Salir</button>
+    </div>
+  </nav>
+
+  <!-- HOME -->
+  <div id="page-home" class="page active">
+    <section class="hero">
+      <div class="hero-deco hero-deco-1"></div>
+      <div class="hero-deco hero-deco-2"></div>
+      <div class="hero-content">
+        <div class="hero-tag">✦ Encuentra tu centro</div>
+        <h1>Respira.<br><em>Fluye.</em><br>Transfórmate.</h1>
+        <p>Un refugio de paz y movimiento consciente.<br>Reserva tu lugar y comienza tu viaje hacia el bienestar.</p>
+        <div class="cta-group">
+          <button class="btn-cta primary" onclick="nav('classes')">Ver próximas clases</button>
+          <button class="btn-cta outline" onclick="nav('register')">Crear cuenta gratis</button>
+        </div>
+      </div>
+    </section>
+    <div class="features">
+      <div class="feat-card">
+        <div class="feat-icon g">🌿</div>
+        <h3>Para todos los niveles</h3>
+        <p>Desde principiantes hasta practicantes avanzados, cada clase tiene su espacio perfecto.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon b">🌊</div>
+        <h3>Reserva en segundos</h3>
+        <p>Elige tu clase, envía tu solicitud y recibe confirmación del estudio en breve.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon p">🌸</div>
+        <h3>Instructores presentes</h3>
+        <p>Cada instructor guía con atención y cuidado, acompañándote en cada respiración.</p>
+      </div>
+    </div>
+    <footer>
+      <div class="fl">ZenFlow Yoga Studio</div>
+      <p>Un refugio para el movimiento consciente · Con amor desde el estudio</p>
+    </footer>
+  </div>
+
+  <!-- CLASSES -->
+  <div id="page-classes" class="page">
+    <div class="section">
+      <div class="section-hd">
+        <h2>Próximas clases</h2>
+        <p>Encuentra tu práctica y reserva tu lugar</p>
+      </div>
+      <div id="classesList" class="classes-grid">
+        <div class="loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="page-login" class="page">
+    <div class="auth-wrap">
+      <div class="auth-card">
+        <h2>Bienvenida de vuelta</h2>
+        <p class="sub">Inicia sesión para gestionar tus reservas</p>
+        <div class="fgroup"><label>Email</label><input type="email" id="lEmail" placeholder="tu@email.com"/></div>
+        <div class="fgroup"><label>Contraseña</label><input type="password" id="lPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+        <button class="btn-submit" id="btnLogin" onclick="doLogin()">Iniciar sesión</button>
+        <p class="auth-switch">¿Sin cuenta? <a onclick="nav('register')">Únete al estudio</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- REGISTER -->
+  <div id="page-register" class="page">
+    <div class="auth-wrap">
+      <div class="auth-card">
+        <h2>Únete a ZenFlow</h2>
+        <p class="sub">Crea tu cuenta y comienza a reservar</p>
+        <div class="fgroup"><label>Nombre completo</label><input type="text" id="rName" placeholder="Tu nombre"/></div>
+        <div class="fgroup"><label>Email</label><input type="email" id="rEmail" placeholder="tu@email.com"/></div>
+        <div class="fgroup"><label>Teléfono (opcional)</label><input type="tel" id="rPhone" placeholder="+54 11 0000-0000"/></div>
+        <div class="fgroup"><label>Contraseña</label><input type="password" id="rPass" placeholder="Mínimo 6 caracteres"/></div>
+        <button class="btn-submit" id="btnRegister" onclick="doRegister()">Crear cuenta</button>
+        <p class="auth-switch">¿Ya tienes cuenta? <a onclick="nav('login')">Iniciar sesión</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="page-dashboard" class="page">
+    <div class="dash-header">
+      <h1 id="dashTitle">Mi espacio</h1>
+      <p  id="dashSub">—</p>
+    </div>
+    <div class="dash-tabs" id="dashTabs"></div>
+    <div class="section">
+      <!-- Student -->
+      <div id="tp-myBookings" class="tab-panel">
+        <div style="margin-bottom:28px"><h2 style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.6rem">Mis reservas</h2></div>
+        <div id="myBookingsList" class="blist"></div>
+      </div>
+      <div id="tp-browse" class="tab-panel">
+        <div style="margin-bottom:28px"><h2 style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.6rem">Clases disponibles</h2></div>
+        <div id="dashClasses" class="classes-grid"></div>
+      </div>
+      <!-- Admin -->
+      <div id="tp-pending" class="tab-panel">
+        <div style="margin-bottom:28px"><h2 style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.6rem">Solicitudes pendientes</h2></div>
+        <div id="pendingList"></div>
+      </div>
+      <div id="tp-newClass" class="tab-panel">
+        <div class="form-card">
+          <h3>Nueva sesión de clase</h3>
+          <div class="fgroup"><label>Tipo de clase</label>
+            <select id="ncType"><option value="">Selecciona un tipo</option></select>
+          </div>
+          <div class="fgroup"><label>Título</label><input type="text" id="ncTitle" placeholder="Ej: Hatha Yoga Matutino"/></div>
+          <div class="frow">
+            <div class="fgroup"><label>Inicio</label><input type="datetime-local" id="ncStart"/></div>
+            <div class="fgroup"><label>Fin</label><input type="datetime-local" id="ncEnd"/></div>
+          </div>
+          <div class="frow">
+            <div class="fgroup"><label>Lugar</label><input type="text" id="ncLoc" value="Sala Principal"/></div>
+            <div class="fgroup"><label>Máx. estudiantes</label><input type="number" id="ncMax" value="12" min="1" max="50"/></div>
+          </div>
+          <div class="fgroup"><label>Descripción (opcional)</label><textarea id="ncDesc" placeholder="Describe la clase..."></textarea></div>
+          <button class="btn-submit" id="btnCreateClass" onclick="createClass()">Crear sesión</button>
+        </div>
+      </div>
+      <div id="tp-allBookings" class="tab-panel">
+        <div style="margin-bottom:28px"><h2 style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.6rem">Todas las reservas</h2></div>
+        <div id="allBookingsList" class="blist"></div>
+      </div>
+      <div id="tp-students" class="tab-panel">
+        <div style="margin-bottom:28px"><h2 style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.6rem">Estudiantes registrados</h2></div>
+        <div id="studentsList" class="blist"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- Modal reserva -->
+<div id="modalOverlay" class="overlay">
+  <div class="modal">
+    <h3>Reservar clase</h3>
+    <p class="modal-sub" id="modalInfo">—</p>
+    <div class="fgroup">
+      <label>Nota para el instructor (opcional)</label>
+      <textarea id="modalNotes" placeholder="Lesiones, experiencia previa, dudas..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn-cta primary" id="btnConfirm" onclick="confirmBooking()" style="padding:11px 28px">Enviar solicitud</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════════════════════
+const SUPABASE_URL  = "https://prcniztgdsznxgxphcrt.supabase.co";
+const SUPABASE_KEY  = "sb_publishable_IZOsFNLW2f_pFJCd8Sy1cA_dzrK1BJw";
+const API_URL       = "https://zenflow-yoga-api.onrender.com"; // ← reemplazar con tu URL de Render
+
+// ════════════════════════════════════════════════════════════
+// SUPABASE CLIENT
+// Auth (signUp, signIn, signOut, getSession) va directo a
+// Supabase desde el frontend — sin pasar por el backend.
+// ════════════════════════════════════════════════════════════
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ─── State ──────────────────────────────────────────────────
+let S = { session: null, profile: null, selectedScheduleId: null };
+
+// ─── Toast ──────────────────────────────────────────────────
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  setTimeout(() => el.className = '', 3400);
+}
+
+// ─── Router ─────────────────────────────────────────────────
+function nav(page) {
+  document.querySelectorAll('#app > .page').forEach(p => p.classList.remove('active'));
+  const el = document.getElementById('page-' + page);
+  if (el) el.classList.add('active');
+  window.scrollTo(0, 0);
+  if (page === 'classes')   loadClasses('classesList');
+  if (page === 'dashboard') initDashboard();
+}
+
+// ─── Nav UI ─────────────────────────────────────────────────
+function updateNav() {
+  const auth = !!S.session;
+  document.getElementById('navGuest').style.display = auth ? 'none' : 'flex';
+  document.getElementById('navAuth').style.display  = auth ? 'flex' : 'none';
+  if (auth && S.profile) {
+    const n = S.profile.full_name || S.session.user.email;
+    document.getElementById('navName').textContent   = n.split(' ')[0];
+    document.getElementById('navAvatar').textContent = n[0].toUpperCase();
+  }
+}
+
+// ─── API helper (llama al backend FastAPI con el JWT del usuario) ──
+async function api(method, path, body = null) {
+  if (!S.session?.access_token) throw new Error('No autenticado');
+  const headers = {
+    'Content-Type':  'application/json',
+    'Authorization': 'Bearer ' + S.session.access_token
+  };
+  const opts = { method, headers };
+  if (body) opts.body = JSON.stringify(body);
+  const res  = await fetch(API_URL + path, opts);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Error en la solicitud');
+  return data;
+}
+
+// ════════════════════════════════════════════════════════════
+// AUTH — Supabase Auth JS SDK
+// signUp / signIn / signOut directo desde el frontend.
+// El trigger handle_new_user() en Supabase crea el perfil
+// automáticamente en la tabla profiles al registrarse.
+// ════════════════════════════════════════════════════════════
+
+sb.auth.onAuthStateChange(async (event, session) => {
+  S.session = session;
+  if (session) {
+    const { data } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+    S.profile = data;
+  } else {
+    S.profile = null;
+  }
+  updateNav();
+});
+
+async function doLogin() {
+  const email    = document.getElementById('lEmail').value.trim();
+  const password = document.getElementById('lPass').value;
+  if (!email || !password) return toast('Completa todos los campos', 'err');
+  const btn = document.getElementById('btnLogin');
+  btn.disabled = true; btn.textContent = 'Iniciando…';
+  try {
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    toast('Bienvenida ✦', 'ok');
+    nav('dashboard');
+  } catch(e) {
+    toast(e.message || 'Credenciales inválidas', 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Iniciar sesión';
+  }
+}
+
+async function doRegister() {
+  const full_name = document.getElementById('rName').value.trim();
+  const email     = document.getElementById('rEmail').value.trim();
+  const phone     = document.getElementById('rPhone').value.trim();
+  const password  = document.getElementById('rPass').value;
+  if (!full_name || !email || !password) return toast('Completa los campos obligatorios', 'err');
+  if (password.length < 6) return toast('Contraseña mínimo 6 caracteres', 'err');
+  const btn = document.getElementById('btnRegister');
+  btn.disabled = true; btn.textContent = 'Creando cuenta…';
+  try {
+    const { error } = await sb.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name, phone } }
+    });
+    if (error) throw error;
+    toast('Cuenta creada. Verifica tu email para activarla ✦', 'ok');
+    nav('login');
+  } catch(e) {
+    toast(e.message, 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Crear cuenta';
+  }
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  S = { session: null, profile: null, selectedScheduleId: null };
+  updateNav();
+  nav('home');
+  toast('Sesión cerrada');
+}
+
+// ════════════════════════════════════════════════════════════
+// CLASES — consulta directa a Supabase (lectura pública por RLS)
+// ════════════════════════════════════════════════════════════
+async function loadClasses(targetId = 'classesList') {
+  const el = document.getElementById(targetId);
+  el.innerHTML = '<div class="loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+  try {
+    const now = new Date().toISOString();
+    const { data, error } = await sb
+      .from('class_availability')
+      .select('*')
+      .gte('start_time', now)
+      .order('start_time')
+      .limit(60);
+    if (error) throw error;
+    renderClasses(data || [], targetId);
+  } catch(e) {
+    el.innerHTML = '<div class="empty"><div class="ei">🌸</div><p>No se pudieron cargar las clases. Intenta de nuevo.</p></div>';
+  }
+}
+
+function renderClasses(list, targetId) {
+  const el = document.getElementById(targetId);
+  if (!list.length) {
+    el.innerHTML = '<div class="empty"><div class="ei">🌿</div><p>No hay clases programadas próximamente.</p></div>';
+    return;
+  }
+  const lvl = { beginner:'Principiante', intermediate:'Intermedio', advanced:'Avanzado', all_levels:'Todos los niveles' };
+  el.innerHTML = list.map(c => {
+    const start = new Date(c.start_time);
+    const dStr  = start.toLocaleDateString('es-AR', { weekday:'long', day:'numeric', month:'long' });
+    const tStr  = start.toLocaleTimeString('es-AR', { hour:'2-digit', minute:'2-digit' });
+    const full  = (c.available_spots || 0) <= 0;
+    const color = c.color_hex || '#A8C5A0';
+    const auth  = !!S.session;
+    return `<div class="class-card">
+      <div class="cc-head">
+        <div class="cc-top">
+          <span class="type-badge" style="background:${color}">${c.class_type || 'Clase'}</span>
+          <span class="spots${full ? ' full' : ''}">● ${full ? 'Sin lugares' : c.available_spots + ' lugar' + (c.available_spots !== 1 ? 'es' : '')}</span>
+        </div>
+        <h3>${c.title}</h3>
+        <div class="class-meta">${lvl[c.level] || ''} · ${c.duration_min} min</div>
+      </div>
+      <div class="cc-body">
+        <div class="cc-info">
+          <span class="cc-info-item">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            ${dStr}, ${tStr}
+          </span>
+          <span class="cc-info-item">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            ${c.location || 'Sala Principal'}
+          </span>
+          ${c.instructor_name ? `<span class="cc-info-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${c.instructor_name}</span>` : ''}
+        </div>
+        ${auth
+          ? `<button class="btn-reserve" ${full ? 'disabled' : ''} onclick="openModal('${c.id}','${esc(c.title)}','${dStr} ${tStr}')">
+              ${full ? 'Sin disponibilidad' : 'Reservar lugar →'}
+            </button>`
+          : `<button class="btn-reserve" onclick="nav('login')">Inicia sesión para reservar</button>`
+        }
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function esc(s) { return (s || '').replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+
+// ════════════════════════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════════════════════════
+function initDashboard() {
+  if (!S.session) { nav('login'); return; }
+  const isAdmin = S.profile?.role === 'admin';
+  document.getElementById('dashTitle').textContent = isAdmin ? 'Panel de administración' : 'Mi espacio zen';
+  document.getElementById('dashSub').textContent   = isAdmin
+    ? 'Gestiona clases, horarios y reservas del estudio'
+    : `Hola, ${(S.profile?.full_name || '').split(' ')[0] || ''} 🌿`;
+
+  const tabs = isAdmin ? [
+    { id: 'pending',     label: 'Solicitudes',        fn: loadPending },
+    { id: 'newClass',    label: 'Nueva clase',         fn: loadClassForm },
+    { id: 'allBookings', label: 'Todas las reservas',  fn: loadAllBookings },
+    { id: 'students',    label: 'Estudiantes',         fn: loadStudents },
+  ] : [
+    { id: 'myBookings',  label: 'Mis reservas',        fn: loadMyBookings },
+    { id: 'browse',      label: 'Ver clases',          fn: () => loadClasses('dashClasses') },
+  ];
+
+  const tabsEl = document.getElementById('dashTabs');
+  tabsEl.innerHTML = tabs.map((t, i) =>
+    `<button class="tab${i === 0 ? ' active' : ''}">${t.label}</button>`
+  ).join('');
+  tabsEl.querySelectorAll('.tab').forEach((btn, i) => {
+    btn.onclick = () => {
+      tabsEl.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('tp-' + tabs[i].id)?.classList.add('active');
+      tabs[i].fn?.();
+    };
+  });
+
+  // activar primer tab
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tp-' + tabs[0].id)?.classList.add('active');
+  tabs[0].fn?.();
+}
+
+// ─── Mis reservas ────────────────────────────────────────────
+async function loadMyBookings() {
+  const el = document.getElementById('myBookingsList');
+  el.innerHTML = '<div class="loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+  try {
+    const { data, error } = await sb
+      .from('bookings')
+      .select('*, class_schedules(title, start_time, end_time, location, class_types(name, color_hex))')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    if (!data.length) {
+      el.innerHTML = '<div class="empty"><div class="ei">🌸</div><p>Aún no tienes reservas. ¡Explora las clases!</p></div>';
+      return;
+    }
+    el.innerHTML = data.map(b => {
+      const s = b.class_schedules;
+      const d = s ? new Date(s.start_time).toLocaleDateString('es-AR', { weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '—';
+      return `<div class="b-item">
+        <div class="b-info">
+          <h4>${s?.title || 'Clase'}</h4>
+          <p>${d} · ${s?.location || ''}</p>
+          ${b.notes ? `<p style="margin-top:3px;font-style:italic">Nota: ${b.notes}</p>` : ''}
+          ${b.admin_notes ? `<p style="margin-top:3px;color:var(--text-mid)">Admin: ${b.admin_notes}</p>` : ''}
+        </div>
+        <div class="b-right">
+          <span class="status ${b.status}">${sLabel(b.status)}</span>
+          ${['pending','approved'].includes(b.status)
+            ? `<button class="btn-cancel-link" onclick="cancelBooking('${b.id}')">Cancelar</button>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div class="empty"><p>Error al cargar reservas.</p></div>';
+  }
+}
+
+function sLabel(s) {
+  return { pending:'Pendiente', approved:'Confirmada', rejected:'No aceptada', cancelled:'Cancelada' }[s] || s;
+}
+
+async function cancelBooking(id) {
+  if (!confirm('¿Cancelar esta reserva?')) return;
+  try {
+    const { error } = await sb.from('bookings').update({ status: 'cancelled' }).eq('id', id);
+    if (error) throw error;
+    toast('Reserva cancelada', 'ok');
+    loadMyBookings();
+  } catch(e) { toast(e.message, 'err'); }
+}
+
+// ─── Modal de reserva ────────────────────────────────────────
+function openModal(schedId, title, dateStr) {
+  if (!S.session) { nav('login'); return; }
+  S.selectedScheduleId = schedId;
+  document.getElementById('modalInfo').textContent = `${title} — ${dateStr}`;
+  document.getElementById('modalNotes').value = '';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  S.selectedScheduleId = null;
+}
+
+async function confirmBooking() {
+  if (!S.selectedScheduleId) return;
+  const notes = document.getElementById('modalNotes').value;
+  const btn   = document.getElementById('btnConfirm');
+  btn.disabled = true; btn.textContent = 'Enviando…';
+  try {
+    const { error } = await sb.from('bookings').insert({
+      schedule_id: S.selectedScheduleId,
+      student_id:  S.session.user.id,
+      status:      'pending',
+      notes
+    });
+    if (error) {
+      if (error.code === '23505') throw new Error('Ya tienes una reserva para esta clase');
+      throw error;
+    }
+    closeModal();
+    toast('Solicitud enviada. Te avisaremos cuando sea confirmada ✦', 'ok');
+  } catch(e) {
+    toast(e.message, 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Enviar solicitud';
+  }
+}
+
+// ─── Admin: Pendientes ───────────────────────────────────────
+async function loadPending() {
+  const el = document.getElementById('pendingList');
+  el.innerHTML = '<div class="loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+  try {
+    const pending = await api('GET', '/admin/bookings/pending');
+    if (!pending.length) {
+      el.innerHTML = '<div class="empty"><div class="ei">🌿</div><p>Sin solicitudes pendientes. Todo en calma ✦</p></div>';
+      return;
+    }
+    el.innerHTML = pending.map(b => {
+      const s = b.class_schedules, p = b.profiles;
+      const d = s ? new Date(s.start_time).toLocaleDateString('es-AR', { weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' }) : '—';
+      return `<div class="pending-card">
+        <h4><span>${p?.full_name || 'Estudiante'}</span> solicita unirse a "${s?.title || 'clase'}"</h4>
+        <div class="pending-meta">
+          📅 ${d} &nbsp;·&nbsp; 📍 ${s?.location || ''}
+          ${p?.email ? ` &nbsp;·&nbsp; 📧 ${p.email}` : ''}
+          ${p?.phone ? ` &nbsp;·&nbsp; 📞 ${p.phone}` : ''}
+          ${b.notes ? `<br>💬 <em>${b.notes}</em>` : ''}
+        </div>
+        <div class="pending-actions">
+          <button class="btn-approve" onclick="reviewBooking('${b.id}','approved')">✓ Aceptar</button>
+          <button class="btn-reject"  onclick="reviewBooking('${b.id}','rejected')">✕ Rechazar</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div class="empty"><p>Error al cargar solicitudes.</p></div>';
+  }
+}
+
+async function reviewBooking(id, status) {
+  try {
+    await api('POST', '/admin/bookings/review', { booking_id: id, status });
+    toast(status === 'approved' ? 'Reserva aceptada ✦' : 'Reserva rechazada', 'ok');
+    loadPending();
+  } catch(e) { toast(e.message, 'err'); }
+}
+
+// ─── Admin: Todas las reservas ───────────────────────────────
+async function loadAllBookings() {
+  const el = document.getElementById('allBookingsList');
+  el.innerHTML = '<div class="loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+  try {
+    const list = await api('GET', '/admin/bookings/all');
+    if (!list.length) { el.innerHTML = '<div class="empty"><p>Sin reservas aún.</p></div>'; return; }
+    el.innerHTML = list.map(b => {
+      const s = b.class_schedules, p = b.profiles;
+      const d = s ? new Date(s.start_time).toLocaleDateString('es-AR', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '—';
+      return `<div class="b-item">
+        <div class="b-info">
+          <h4>${p?.full_name || '—'} <span style="font-weight:300;color:var(--text-soft)">en</span> ${s?.title || '—'}</h4>
+          <p>${d} · ${p?.email || ''}</p>
+        </div>
+        <span class="status ${b.status}">${sLabel(b.status)}</span>
+      </div>`;
+    }).join('');
+  } catch(e) { el.innerHTML = '<div class="empty"><p>Error al cargar.</p></div>'; }
+}
+
+// ─── Admin: Estudiantes ──────────────────────────────────────
+async function loadStudents() {
+  const el = document.getElementById('studentsList');
+  el.innerHTML = '<div class="loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+  try {
+    const list = await api('GET', '/admin/students');
+    if (!list.length) { el.innerHTML = '<div class="empty"><p>Sin estudiantes aún.</p></div>'; return; }
+    el.innerHTML = list.map(s => `<div class="b-item">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="avatar" style="width:42px;height:42px;font-size:.95rem">${(s.full_name || 'U')[0].toUpperCase()}</div>
+        <div class="b-info">
+          <h4>${s.full_name}</h4>
+          <p>${s.email}${s.phone ? ' · ' + s.phone : ''}</p>
+        </div>
+      </div>
+      <span style="font-size:.76rem;color:var(--text-soft)">${new Date(s.created_at).toLocaleDateString('es-AR', { day:'numeric', month:'short', year:'numeric' })}</span>
+    </div>`).join('');
+  } catch(e) { el.innerHTML = '<div class="empty"><p>Error al cargar.</p></div>'; }
+}
+
+// ─── Admin: Formulario nueva clase ───────────────────────────
+async function loadClassForm() {
+  try {
+    const { data } = await sb.from('class_types').select('*').order('name');
+    const sel = document.getElementById('ncType');
+    sel.innerHTML = '<option value="">Selecciona un tipo</option>' +
+      (data || []).map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+  } catch(e) {}
+}
+
+async function createClass() {
+  const typeId = document.getElementById('ncType').value;
+  const title  = document.getElementById('ncTitle').value.trim();
+  const start  = document.getElementById('ncStart').value;
+  const end    = document.getElementById('ncEnd').value;
+  const loc    = document.getElementById('ncLoc').value.trim();
+  const max    = parseInt(document.getElementById('ncMax').value) || 12;
+  const desc   = document.getElementById('ncDesc').value.trim();
+
+  if (!typeId || !title || !start || !end) return toast('Completa los campos obligatorios', 'err');
+  if (new Date(start) >= new Date(end)) return toast('El fin debe ser posterior al inicio', 'err');
+
+  const btn = document.getElementById('btnCreateClass');
+  btn.disabled = true; btn.textContent = 'Creando…';
+  try {
+    await api('POST', '/admin/schedules', {
+      class_type_id: typeId,
+      title,
+      description:   desc,
+      start_time:    new Date(start).toISOString(),
+      end_time:      new Date(end).toISOString(),
+      location:      loc,
+      max_students:  max
+    });
+    toast('Clase creada exitosamente ✦', 'ok');
+    ['ncTitle','ncStart','ncEnd','ncDesc'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('ncType').value = '';
+    document.getElementById('ncMax').value  = '12';
+  } catch(e) {
+    toast(e.message, 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Crear sesión';
+  }
+}
+
+// ─── Init: restaurar sesión existente ────────────────────────
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    S.session = session;
+    const { data } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+    S.profile = data;
+    updateNav();
+  }
+})();
+</script>
+</body>
+</html>
