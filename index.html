@@ -1258,7 +1258,7 @@ async function loadAdminClasses() {
   try {
     const { data, error } = await sb
       .from('class_availability')
-      .select('*, class_types(id,name,color_hex)')
+      .select('*')
       .order('start_time')
       .limit(120);
     if (error) throw error;
