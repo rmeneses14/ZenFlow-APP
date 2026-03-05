@@ -1152,7 +1152,7 @@ async function loadPending() {
       groups[sid].bookings.push(b);
     });
 
-    el.innerHTML = '<div style="margin-bottom:6px"><h2 style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.6rem;margin-bottom:4px">Reservas pendientes</h2><p style="font-size:.82rem;color:var(--text-soft)">' + pending.length + ' solicitud' + (pending.length !== 1 ? 'es' : '') + ' esperando revisión</p></div><br>';
+    el.innerHTML = `<div style="margin-bottom:6px"><h2 style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.6rem;margin-bottom:4px">Reservas pendientes</h2><p style="font-size:.82rem;color:var(--text-soft)">${pending.length} solicitud${pending.length !== 1 ? 'es' : ''} esperando revisión</p></div><br>`;
 
     el.innerHTML += Object.values(groups).map(g => {
       const s  = g.sched;
@@ -1215,7 +1215,7 @@ async function loadAllBookings() {
   try {
     const list = await api('GET', '/admin/bookings/all');
     if (!list.length) { el.innerHTML = '<div class="empty"><p>Sin reservas aún.</p></div>'; return; }
-    el.innerHTML = '<div style="margin-bottom:20px"><h2 style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.6rem;margin-bottom:4px">Historial de reservas</h2><p style="font-size:.82rem;color:var(--text-soft)">' + list.length + ' registro' + (list.length !== 1 ? 's' : '') + ' en total</p></div>'
+    el.innerHTML = `<div style="margin-bottom:20px"><h2 style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.6rem;margin-bottom:4px">Historial de reservas</h2><p style="font-size:.82rem;color:var(--text-soft)">${list.length} registro${list.length !== 1 ? 's' : ''} en total</p></div>`
       + list.map(b => {
       const s = b.class_schedules, p = b.profiles;
       const d = s ? new Date(s.start_time).toLocaleDateString('es-AR', { weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '—';
